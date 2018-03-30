@@ -4,6 +4,17 @@
 
 #include <SPI.h>
 #include <RF24.h>
+#include <Arduino.h>
+#include <U8g2lib.h>
+
+#ifdef U8X8_HAVE_HW_SPI
+#include <SPI.h>
+#endif
+#ifdef U8X8_HAVE_HW_I2C
+#include <Wire.h>
+#endif
+
+U8G2_SSD1306_128X32_UNIVISION_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ A5, /* data=*/ A4, /* reset=*/ U8X8_PIN_NONE);   // Adafruit Feather M0 Basic Proto + FeatherWing OLED
 
 // Radio Configuration
 
@@ -13,7 +24,7 @@ bool radioNumber=1;
 bool role = 1;  //Control transmit 1/receive 0
 
 // Decide where you are going to plug the joystick into the circuit board.
-
+int axis1 = A3;
 int ForeAft_Pin = 0;        // Plug Joystick Fore/Aft into Analog pin 0
 int LeftRight_Pin = 1;      // Plug Joystick Left/Right into Analog pin 1
 
@@ -36,13 +47,13 @@ int Left_Limit = 226;       // Low ADC Range of Joystick LeftRight
 
 // Begin Josh's Mods to pre-setup
 
-int driveMode = 0;          // define different drive modes
-int driveSpeed = 0;         // define drive speed
-int aux1 = 0;               // Auxilary variables for later use
-int aux2 = 0;
-int aux3 = 0;
-int aux4 = 0;
-int aux5 = 0;
+char driveMode = 0;          // define different drive modes
+uint8_t driveSpeed = 0;         // define drive speed
+byte aux1 = 0;               // Auxilary variables for later use
+byte aux2 = 0;
+byte aux3 = 0;
+byte aux4 = 0;
+byte aux5 = 0;
 
 String inputString = "";         // a String to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
@@ -56,29 +67,39 @@ void setup() {
     radio.setPALevel(RF24_PA_LOW);        // Set the power to low
     radio.openWritingPipe(addresses[1]);  // Where we send data out
     radio.openReadingPipe(1,addresses[0]);// Where we receive data back
-
+    u8g2.begin();
     inputString.reserve(200);
+    u8g2.setFontMode(1);
 }
 void loop() {
     ForeAft_Input = analogRead(ForeAft_Pin) ;             // Read the Fore/Aft joystick value
     LeftRight_Input = analogRead(LeftRight_Pin) ;         // Read the Left/Right joystick value
     ForeAft_Output = convertForeAftToServo(ForeAft_Input) ;        // Convert the Fore/Aft joystick value to a Servo value (0-180)
     LeftRight_Output = convertLeftRightToServo(LeftRight_Input) ;  // Convert the Left/Right joystick value to a Servo value (0-180)
-
+    axis1 = analogRead(A3);
 
     //  Serial.print(ForeAft_Output);
     radio.stopListening();                                 // Stop listening and begin transmitting
-    delay(500);                                            // quite a long delay -- causes jittering of servo
+    delay(50);                                            // quite a long delay -- causes jittering of servo
     if(radio.write(&ForeAft_Output, sizeof(ForeAft_Output)),Serial.println("sent ForeAft"));              //Send ForeAft data
     if(radio.write(&LeftRight_Output, sizeof(LeftRight_Output)),Serial.println("sent LeftRight"));        //Send LeftRight data
 
 // Begin Josh's Mods
 
-    if(radio.write(&aux5, sizeof(aux5)),Serial.println("sent aux 5"));
-    if(radio.write(&aux4, sizeof(aux4)),Serial.println("sent aux 4"));
-    if(radio.write(&aux3, sizeof(aux3)),Serial.println("sent aux 3"));
-    if(radio.write(&aux2, sizeof(aux2)),Serial.println("sent aux 2"));
-    if(radio.write(&aux1, sizeof(aux1)),Serial.println("sent aux 1"));
+    
+
+
+    if(radio.write(&aux5, sizeof(aux5)),Serial.print("sent aux 5, "),Serial.println(aux5));    
+    if(radio.write(&aux4, sizeof(aux4)),Serial.print("sent aux 4, "),Serial.println(aux4));
+    if(radio.write(&aux3, sizeof(aux3)),Serial.print("sent aux 3, "),Serial.println(aux3));
+    if(radio.write(&aux2, sizeof(aux2)),Serial.print("sent aux 2, "),Serial.println(aux2));
+    if(radio.write(&aux1, sizeof(aux1)),Serial.print("sent aux 1, "),Serial.println(aux1));
+    if(radio.write(&axis1, sizeof(axis1)),Serial.print("sent axis 1, "),Serial.println(axis1));
+
+    updateOLED();
+
+
+    
     if(radio.write(&inputString, sizeof(inputString)),Serial.println(inputString));
     if(digitalRead(2 == HIGH)) {
       aux3 = 55;
@@ -89,7 +110,7 @@ void loop() {
         inputString = "";
         stringComplete = false;
       }
-}
+
     
 radio.startListening();                                // Get ready to receive confirmation from receiver
 }
@@ -108,6 +129,35 @@ float convertLeftRightToServo(float x) {
     int result;
     result = ((x - Left_Limit) / (Right_Limit - Left_Limit) * 180);
     return result;
+}
+
+
+
+
+
+void updateOLED() {
+    u8g2.setFont(u8g2_font_ncenB08_tr);  // choose a suitable font
+    u8g2.clearBuffer();          // clear the internal memory
+    u8g2.setFontDirection(0);
+    u8g2.setCursor(0,8);
+    u8g2.print("aux1=");  // write something to the internal memory
+    u8g2.println(aux1);        // transfer internal memory to the display
+    u8g2.print(" aux2=");
+    u8g2.print(aux2);
+    u8g2.print(" aux3=");
+    u8g2.print(aux3);
+    u8g2.setCursor(0,17);
+    u8g2.print("aux4=");
+    u8g2.print(aux4);
+    u8g2.print(" aux5=");
+    u8g2.print(aux5);
+    u8g2.print("ax1=");
+    u8g2.println(axis1);
+    u8g2.sendBuffer();  
+    u8g2.setFont(u8g2_font_cu12_hr);    
+    u8g2.setCursor(0,26);
+    u8g2.print("Josh is awesome");  
+    u8g2.sendBuffer();  
 }
 
 
