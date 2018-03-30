@@ -86,9 +86,6 @@ void loop() {
 
 // Begin Josh's Mods
 
-    
-
-
     if(radio.write(&aux5, sizeof(aux5)),Serial.print("sent aux 5, "),Serial.println(aux5));    
     if(radio.write(&aux4, sizeof(aux4)),Serial.print("sent aux 4, "),Serial.println(aux4));
     if(radio.write(&aux3, sizeof(aux3)),Serial.print("sent aux 3, "),Serial.println(aux3));
@@ -97,8 +94,6 @@ void loop() {
     if(radio.write(&axis1, sizeof(axis1)),Serial.print("sent axis 1, "),Serial.println(axis1));
 
     updateOLED();
-
-
     
     if(radio.write(&inputString, sizeof(inputString)),Serial.println(inputString));
     if(digitalRead(2 == HIGH)) {
@@ -131,10 +126,6 @@ float convertLeftRightToServo(float x) {
     return result;
 }
 
-
-
-
-
 void updateOLED() {
     u8g2.setFont(u8g2_font_ncenB08_tr);  // choose a suitable font
     u8g2.clearBuffer();          // clear the internal memory
@@ -153,13 +144,11 @@ void updateOLED() {
     u8g2.print(aux5);
     u8g2.print("ax1=");
     u8g2.println(axis1);
-    u8g2.sendBuffer();  
-    u8g2.setFont(u8g2_font_cu12_hr);    
-    u8g2.setCursor(0,26);
+    u8g2.setFont(u8g2_font_ncenB10_tr);    
+    u8g2.setCursor(0,28);
     u8g2.print("Josh is awesome");  
     u8g2.sendBuffer();  
 }
-
 
 void serialEvent() {
   while (Serial.available()) {
