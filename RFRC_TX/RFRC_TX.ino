@@ -54,13 +54,18 @@ byte aux2 = 0;
 byte aux3 = 0;
 byte aux4 = 0;
 byte aux5 = 0;
-int buttonState = 0;
-const int ledPin = 13;
-const int buttonPin = 3;
+
+#define redButton 8
+#define greenButton 7
+#define blueButton 6
+#define whiteButton 5
+
+
+
 String inputString = "";         // a String to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 
-
+boolean whiteButtonStatus;
 // End mods
 
 void setup() {
@@ -69,6 +74,11 @@ void setup() {
     setupOLED();                     // Start OLED setup procedure
     inputString.reserve(200);
     pinMode(3, INPUT_PULLUP);
+    pinMode(8, INPUT_PULLUP);
+    pinMode(7, INPUT_PULLUP);
+    pinMode(6, INPUT_PULLUP);
+    pinMode(5, INPUT_PULLUP);
+    u8g2.setFontMode(1);
 }
 void loop() {
     ForeAft_Input = analogRead(ForeAft_Pin) ;             // Read the Fore/Aft joystick value
@@ -76,20 +86,14 @@ void loop() {
     ForeAft_Output = convertForeAftToServo(ForeAft_Input) ;        // Convert the Fore/Aft joystick value to a Servo value (0-180)
     LeftRight_Output = convertLeftRightToServo(LeftRight_Input) ;  // Convert the Left/Right joystick value to a Servo value (0-180)
     axis1 = analogRead(A3);
-    
+
     //  Serial.print(ForeAft_Output);
     radio.stopListening();                                 // Stop listening and begin transmitting
-    if(radio.write(&ForeAft_Output, sizeof(ForeAft_Output)),Serial.println("sent ForeAft"));              //Send ForeAft data
-    if(radio.write(&LeftRight_Output, sizeof(LeftRight_Output)),Serial.println("sent LeftRight"));        //Send LeftRight data
+    if(radio.write(&ForeAft_Output, sizeof(ForeAft_Output)),Serial.print("sent ForeAft"),Serial.print(ForeAft_Output));              //Send ForeAft data
+    if(radio.write(&LeftRight_Output, sizeof(LeftRight_Output)),Serial.print("sent LeftRight"),Serial.print(LeftRight_Output));        //Send LeftRight data
 
 // Begin Josh's Mods
-    buttonState = digitalRead(buttonPin);
-    if (buttonState == HIGH) {
-      aux1=1;
-    } 
-    else {
-      aux1=0;
-    }
+
     if(radio.write(&aux5, sizeof(aux5)),Serial.print("sent aux 5, "),Serial.println(aux5));    
     if(radio.write(&aux4, sizeof(aux4)),Serial.print("sent aux 4, "),Serial.println(aux4));
     if(radio.write(&aux3, sizeof(aux3)),Serial.print("sent aux 3, "),Serial.println(aux3));
@@ -98,11 +102,23 @@ void loop() {
     if(radio.write(&axis1, sizeof(axis1)),Serial.print("sent axis 1, "),Serial.println(axis1));
 
     updateOLED();
-    
+    //delay(1000);
     if(radio.write(&inputString, sizeof(inputString)),Serial.println(inputString));
-    if(digitalRead(2 == HIGH)) {
+    if(digitalRead(redButton == HIGH)) {
       aux3 = 55;
     }
+    if(whiteButtonStatus) {
+      aux1 = (aux1 + 1);
+    }
+    else{
+      aux1 = (aux1 - 1);
+    }
+
+    whiteButtonStatus = (digitalRead(whiteButton));
+    
+
+
+    
     if (stringComplete) {
         Serial.println(inputString);
         // clear the string:
