@@ -64,14 +64,10 @@ boolean stringComplete = false;  // whether the string is complete
 // End mods
 
 void setup() {
-    Serial.begin(9600);                   // Get ready to send data back for debugging purposes
-    radio.begin();                        // Get the transmitter ready
-    radio.setPALevel(RF24_PA_LOW);        // Set the power to low
-    radio.openWritingPipe(addresses[1]);  // Where we send data out
-    radio.openReadingPipe(1,addresses[0]);// Where we receive data back
-    u8g2.begin();
+    setupSerial();                   // Start serial setup procedure
+    setupRadio();                    // Start radio setup procedure
+    setupOLED();                     // Start OLED setup procedure
     inputString.reserve(200);
-    u8g2.setFontMode(1);
     pinMode(3, INPUT_PULLUP);
 }
 void loop() {
@@ -83,7 +79,6 @@ void loop() {
     
     //  Serial.print(ForeAft_Output);
     radio.stopListening();                                 // Stop listening and begin transmitting
-    delay(50);                                            // quite a long delay -- causes jittering of servo
     if(radio.write(&ForeAft_Output, sizeof(ForeAft_Output)),Serial.println("sent ForeAft"));              //Send ForeAft data
     if(radio.write(&LeftRight_Output, sizeof(LeftRight_Output)),Serial.println("sent LeftRight"));        //Send LeftRight data
 
