@@ -54,7 +54,9 @@ byte aux2 = 0;
 byte aux3 = 0;
 byte aux4 = 0;
 byte aux5 = 0;
-
+int buttonState = 0;
+const int ledPin = 13;
+const int buttonPin = 3;
 String inputString = "";         // a String to hold incoming data
 boolean stringComplete = false;  // whether the string is complete
 
@@ -70,6 +72,7 @@ void setup() {
     u8g2.begin();
     inputString.reserve(200);
     u8g2.setFontMode(1);
+    pinMode(3, INPUT_PULLUP);
 }
 void loop() {
     ForeAft_Input = analogRead(ForeAft_Pin) ;             // Read the Fore/Aft joystick value
@@ -77,7 +80,7 @@ void loop() {
     ForeAft_Output = convertForeAftToServo(ForeAft_Input) ;        // Convert the Fore/Aft joystick value to a Servo value (0-180)
     LeftRight_Output = convertLeftRightToServo(LeftRight_Input) ;  // Convert the Left/Right joystick value to a Servo value (0-180)
     axis1 = analogRead(A3);
-
+    
     //  Serial.print(ForeAft_Output);
     radio.stopListening();                                 // Stop listening and begin transmitting
     delay(50);                                            // quite a long delay -- causes jittering of servo
@@ -85,7 +88,13 @@ void loop() {
     if(radio.write(&LeftRight_Output, sizeof(LeftRight_Output)),Serial.println("sent LeftRight"));        //Send LeftRight data
 
 // Begin Josh's Mods
-
+    buttonState = digitalRead(buttonPin);
+    if (buttonState == HIGH) {
+      aux1=1;
+    } 
+    else {
+      aux1=0;
+    }
     if(radio.write(&aux5, sizeof(aux5)),Serial.print("sent aux 5, "),Serial.println(aux5));    
     if(radio.write(&aux4, sizeof(aux4)),Serial.print("sent aux 4, "),Serial.println(aux4));
     if(radio.write(&aux3, sizeof(aux3)),Serial.print("sent aux 3, "),Serial.println(aux3));
